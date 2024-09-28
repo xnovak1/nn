@@ -1,4 +1,4 @@
-put your UČOs (and names) on this line (no exact format required)
+Michal Novák - 525121
 ## PV021 project -- Deep Learning from Scratch
 
 ### DEADLINE
