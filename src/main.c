@@ -3,27 +3,28 @@
 #include <string.h>
 #include "nn.c"
 
-#define TRAIN_VECTORS_FILE "../data/fashion_mnist_train_vectors.csv"
-#define TRAIN_LABELS_FILE "../data/fashion_mnist_train_labels.csv"
-#define TEST_VECTORS_FILE "../data/fashion_mnist_test_vectors.csv"
-#define TEST_LABELS_FILE "../data/fashion_mnist_test_labels.csv"
+#define TRAIN_VECTORS_FILE "data/fashion_mnist_train_vectors.csv"
+#define TRAIN_LABELS_FILE "data/fashion_mnist_train_labels.csv"
+#define TEST_VECTORS_FILE "data/fashion_mnist_test_vectors.csv"
+#define TEST_LABELS_FILE "data/fashion_mnist_test_labels.csv"
 
-#define TRAIN_PREDICTIONS_FILE "../train_predictions.csv"
-#define TEST_PREDICTIONS_FILE "../test_predictions.csv"
+#define TRAIN_PREDICTIONS_FILE "train_predictions.csv"
+#define TEST_PREDICTIONS_FILE "test_predictions.csv"
 
 #define N_TRAIN_SAMPLES 60000
 #define N_TEST_SAMPLES 10000
 
 
-int read_input(char *filename, int n_cols, int n_rows, int **output) {
+int read_input(char *filename, int n_cols, int n_rows, int ***output) {
     FILE *file = fopen(filename, "r");
     if (file == NULL) {
         perror("Unable to open file!");
+        printf("%s\n", filename);
         return 1;
     }
 
-    output = malloc(n_rows * sizeof(int *));
-    if (output == NULL) {
+    int **values = malloc(n_rows * sizeof(int *));
+    if (values == NULL) {
         perror("Memory allocation failed!");
         fclose(file);
         return 1;
@@ -33,8 +34,8 @@ int read_input(char *filename, int n_cols, int n_rows, int **output) {
     int row_count = 0;
 
     while (fgets(line, sizeof(line), file)) {
-        output[row_count] = malloc(n_cols * sizeof(int));
-        if (output[row_count] == NULL) {
+        values[row_count] = malloc(n_cols * sizeof(int));
+        if (values[row_count] == NULL) {
             perror("Memory allocation failed!");
             fclose(file);
             return 1;
@@ -43,7 +44,7 @@ int read_input(char *filename, int n_cols, int n_rows, int **output) {
         char *token = strtok(line, ",");
         int col = 0;
         while (token != NULL && col < n_cols) {
-            output[row_count][col] = atoi(token);
+            values[row_count][col] = atoi(token);
             token = strtok(NULL, ",");
             col++;
         }
@@ -52,6 +53,7 @@ int read_input(char *filename, int n_cols, int n_rows, int **output) {
     }
 
     fclose(file);
+    *output = values;
     return 0;
 }
 
@@ -65,10 +67,10 @@ int main(int argc, char **argv) {
     int **test_vectors = NULL;
     int **test_labels = NULL;
 
-    if (read_input(TRAIN_VECTORS_FILE, 784, N_TRAIN_SAMPLES, train_vectors) != 0 ||
-        read_input(TRAIN_LABELS_FILE, 1, N_TRAIN_SAMPLES, train_labels) != 0 ||
-        read_input(TEST_VECTORS_FILE, 784, N_TEST_SAMPLES, test_vectors) != 0 ||
-        read_input(TEST_LABELS_FILE, 1, N_TEST_SAMPLES, test_labels) != 0 ||) {
+    if (read_input(TRAIN_VECTORS_FILE, 784, N_TRAIN_SAMPLES, &train_vectors) != 0 ||
+        read_input(TRAIN_LABELS_FILE, 1, N_TRAIN_SAMPLES, &train_labels) != 0 ||
+        read_input(TEST_VECTORS_FILE, 784, N_TEST_SAMPLES, &test_vectors) != 0 ||
+        read_input(TEST_LABELS_FILE, 1, N_TEST_SAMPLES, &test_labels) != 0) {
         ret_val = 1;
         goto cleanup;
     }
