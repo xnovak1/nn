@@ -11,7 +11,7 @@ echo "    COMPILING    "
 echo "#################"
 
 ## dont forget to use comiler optimizations (e.g. -O3 or -Ofast)
-# g++ -Wall -std=c++17 -O3 src/main.cpp src/file2.cpp -o network
+# gcc -Wall -std=c17 -O3 src/main.c src/nn.c -o network
 
 
 echo "#################"

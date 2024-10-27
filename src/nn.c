@@ -1,5 +1,5 @@
 #define N_INPUT 784
-#define N_HIDDEN 100
+#define N_HIDDEN 512
 #define N_OUTPUT 10
 #define LEARNING_RATE 0.1
 #define TRAIN_SIZE 60000

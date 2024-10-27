@@ -33,3 +33,6 @@
 
 # Data
 *.csv
+
+# PyTorch example
+python_mnist.py
