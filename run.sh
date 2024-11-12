@@ -11,7 +11,7 @@ echo "    COMPILING    "
 echo "#################"
 
 ## dont forget to use comiler optimizations (e.g. -O3 or -Ofast)
-# gcc -Wall -std=c17 -O3 src/main.c src/nn.c -o network
+# gcc -Wall -std=c17 -O3 src/main.c src/nn.c -lm -o network
 
 
 echo "#################"
