@@ -1,4 +1,4 @@
-Michal Novák - 525121
+Michal Novák - 525121; Monika Bieliková - 492650
 ## PV021 project -- Deep Learning from Scratch
 
 ### DEADLINE

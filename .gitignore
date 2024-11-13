@@ -34,6 +34,7 @@ network
 
 # Data
 *.csv
+*.json
 
 # PyTorch example
 python_mnist.py
