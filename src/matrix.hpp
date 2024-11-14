@@ -1,15 +1,17 @@
 #include <vector>
 
+using namespace std;
+
 class Matrix
 {
 private:
     int rows;
     int cols;
-    std::vector<std::vector<float>> data;
+    vector<vector<float>> data;
 
 public:
     Matrix(int rows, int cols = 0);
-    Matrix(std::vector<std::vector<float>> data);
+    Matrix(vector<vector<float>> data);
 
     Matrix &operator+=(const Matrix &other);
     Matrix operator-(const Matrix &other);
@@ -20,14 +22,14 @@ public:
 
     float at(int row, int col) const;
     void set(int row, int col, float value);
-    std::vector<float> getRow(int row);
+    vector<float> getRow(int row);
 };
 
 Matrix::Matrix(int rows, int cols)
 {
     this->rows = rows;
     this->cols = cols;
-    std::vector<std::vector<float>> d;
+    vector<vector<float>> d;
     for (size_t i = 0; i < rows; i++)
     {
         for (size_t j = 0; j < cols; j++)
@@ -39,7 +41,7 @@ Matrix::Matrix(int rows, int cols)
     this->data = d;
 }
 
-Matrix::Matrix(std::vector<std::vector<float>> data)
+Matrix::Matrix(vector<vector<float>> data)
 {
     this->rows = data.size();
     this->cols = data[0].size();
@@ -56,7 +58,7 @@ void Matrix::set(int row, int col, float value)
     data[row][col] = value;
 }
 
-std::vector<float> Matrix::getRow(int row)
+vector<float> Matrix::getRow(int row)
 {
     return data[row];
 }
