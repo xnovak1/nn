@@ -1,6 +1,7 @@
 #include <cmath>
 #include <vector>
 #include <algorithm>
+#include "matrix.hpp"
 
 using namespace std;
 
@@ -14,8 +15,9 @@ using namespace std;
 struct Layer {
     int n_input;  // number of input neurons
     int n_output; // number of output neurons
-    vector<float> weights;
-    vector<float> biases;
+    Matrix weights;
+    Matrix biases;
+    Matrix output;
 };
 
 struct Network {
@@ -46,3 +48,11 @@ float relu_derivative(float x) {
  * @return int Image classification (0-9)
  */
 int forward(vector<float> input);
+
+
+void backprop(Matrix labels, Network nn){
+    Matrix out= nn.output.output;
+    
+
+
+}
