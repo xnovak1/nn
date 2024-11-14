@@ -5,6 +5,7 @@
 #include <sstream>
 #include <vector>
 #include <chrono>
+#include "matrix.hpp"
 
 using namespace std;
 using namespace std::chrono;
