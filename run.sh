@@ -11,8 +11,7 @@ echo "    COMPILING    "
 echo "#################"
 
 ## dont forget to use comiler optimizations (e.g. -O3 or -Ofast)
-# gcc -Wall -std=c17 -O3 src/main.c src/nn.c -lm -o network
-
+g++ -Wall -O3 main.cpp nn.cpp matrix.cpp -o network
 
 echo "#################"
 echo "     RUNNING     "
@@ -21,4 +20,4 @@ echo "#################"
 ## use nice to decrease priority in order to comply with aisa rules
 ## https://www.fi.muni.cz/tech/unix/computation.html.en
 ## especially if you are using multiple cores
-# nice -n 19 ./network
+nice -n 19 ./network
