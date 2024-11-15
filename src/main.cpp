@@ -93,9 +93,8 @@ void normalize(vector<vector<float>> &vectors, float mean, float sd)
 int main()
 {
     auto start = high_resolution_clock::now();
-
+    
     // load data
-
     vector<int> train_labels = read_labels("../data/fashion_mnist_train_labels.csv");
     vector<int> test_labels = read_labels("../data/fashion_mnist_test_labels.csv");
     vector<vector<float>> train_vectors = read_vectors("../data/fashion_mnist_train_vectors.csv", true);
