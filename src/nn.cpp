@@ -17,7 +17,7 @@ struct Layer {
     int n_output; // number of output neurons
     Matrix weights;
     Matrix biases;
-    Matrix output;
+    Matrix outputs;
 };
 
 struct Network {
@@ -118,5 +118,61 @@ int forward(Network network, vector<float> input) {
     return argmax(output_last);
 }
 
+/**
+ * @brief Cross entropy for final
+ * 
+ * @param actual actual categories
+ * @param predicted vector of predicted probabilities
+ * @return cross entropy
+ */
+float cross_entropy(vector<int> actual, vector<vector<float>> predicted){
+    float entropy;
+    for (size_t j = 0; j < predicted.size(); j++)
+    {
+       for (size_t i = 0; i < 10; i++)
+        {
+            if (i==actual[j])
+            {
+                entropy += log(predicted[j][i]);
+            }
+            
+        } 
+    }
+    return -(1/predicted.size())*entropy;
+}
 
-void backprop(Matrix labels, Network nn);
+
+
+void backprop(Matrix labels, Network nn){
+    //Softmax layer
+    //predicted values - ground truth(labels)
+    Matrix gradient = nn.output.outputs;
+    for (size_t i = 0; i < labels.rowSize(); i++)
+    {
+        gradient.set(i,labels.at(i,0),gradient.at(i,labels.at(i,0))-1);
+    }
+    gradient = gradient*(1/labels.rowSize()); //normalize by number of inputs
+
+    //update weights and biases of output layer
+    gradient = gradient*nn.output.weights.transpose();
+
+    nn.output.weights = nn.output.outputs.transpose()*gradient;
+
+    nn.output.biases = gradient.SumRowsToOne();
+
+    //Backprop ReLu gradient
+    for (int i = 0; i < gradient.rowSize(); i++)
+    {
+        for (int j = 0; j < gradient.colSize(); j++)
+        {
+            gradient.set(i,j,relu_derivative(gradient.at(i,j)));
+        }
+    }
+
+    //update weights and biases for hidden layer
+    nn.hidden.weights = nn.hidden.outputs.transpose()*gradient;
+
+    nn.hidden.biases = gradient.SumRowsToOne();
+
+
+}
