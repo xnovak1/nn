@@ -43,9 +43,15 @@ float activation(float x) {
  * @param size Number of categories
  */
 void softmax(vector<float> &input, int size) {
-    float sum = 0;
+    float sum = 0, max = input[0];
+
+    for (float num : input) {
+        if (num > max)
+            max = num;
+    }
+
     for (int i = 0; i < size; i++) {
-        input[i] = exp(input[i]);
+        input[i] = exp(input[i] - max);
         sum += input[i];
     }
 

@@ -126,7 +126,7 @@ Network init_network() {
     };
 
     std::default_random_engine generator;
-    std::normal_distribution<float> he(0, 2 / N_PIXELS); // normal He
+    std::normal_distribution<float> he(0, 2.0f / N_PIXELS); // normal He
 
     for (int i = 0; i < N_PIXELS; i++) {
         for (int j = 0; j < N_HIDDEN; j++) {
@@ -145,7 +145,7 @@ Network init_network() {
         Matrix(1, 10)
     };
 
-    std::normal_distribution<float> glorot(0, 2 / (N_HIDDEN + 10)); // normal Glorot
+    std::normal_distribution<float> glorot(0, 2.0f / (N_HIDDEN + 10)); // normal Glorot
 
     for (int i = 0; i < N_HIDDEN; i++) {
         for (int j = 0; j < 10; ++j) {
@@ -188,7 +188,7 @@ int main()
 
     Network nn = init_network();
 
-    for (int i = 0; i < 10; i++) {
+    for (int i = 0; i < 30; i++) {
         int predicted = forward(nn, test_vectors[i]);
         cout << "Prediction for the number " << test_labels[i] << ": " << predicted << endl;
     }
