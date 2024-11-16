@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <ctime>
 #include <cstdlib>
+#include <random>
 #include "matrix.hpp"
 #include "nn.hpp"
 
@@ -114,10 +115,8 @@ void normalize(vector<vector<float>> &vectors, float mean, float sd)
 }
 
 Network init_network() {
-    // Seed random number generator for reproducibility
     std::srand(std::time(nullptr));
 
-    // Initialize the hidden layer
     Layer hidden_layer = {
         N_PIXELS,
         N_HIDDEN,
@@ -126,17 +125,18 @@ Network init_network() {
         Matrix(1, N_HIDDEN)
     };
 
-    // Randomly initialize weights and biases for the hidden layer
+    std::default_random_engine generator;
+    std::normal_distribution<float> he(0, 2 / N_PIXELS); // normal He
+
     for (int i = 0; i < N_PIXELS; i++) {
         for (int j = 0; j < N_HIDDEN; j++) {
-            hidden_layer.weights.set(i, j, static_cast<float>(std::rand()) / RAND_MAX);
+            hidden_layer.weights.set(i, j, he(generator));
         }
     }
     for (int j = 0; j < N_HIDDEN; j++) {
-        hidden_layer.biases.set(0, j, static_cast<float>(std::rand()) / RAND_MAX);
+        hidden_layer.biases.set(0, j, he(generator));
     }
 
-    // Initialize the output layer
     Layer output_layer = {
         N_HIDDEN,
         10,
@@ -145,17 +145,17 @@ Network init_network() {
         Matrix(1, 10)
     };
 
-    // Randomly initialize weights and biases for the output layer
+    std::normal_distribution<float> glorot(0, 2 / (N_HIDDEN + 10)); // normal Glorot
+
     for (int i = 0; i < N_HIDDEN; i++) {
         for (int j = 0; j < 10; ++j) {
-            output_layer.weights.set(i, j, static_cast<float>(std::rand()) / RAND_MAX);
+            output_layer.weights.set(i, j, glorot(generator));
         }
     }
-    for (int j = 0; j < 10; j++) {
-        output_layer.biases.set(0, j, static_cast<float>(std::rand()) / RAND_MAX);
+    for (int j = 0; j < 10; j++) { 
+        output_layer.biases.set(0, j, glorot(generator));
     }
 
-    // Create and return the network
     Network network = {
         hidden_layer,
         output_layer
@@ -188,8 +188,10 @@ int main()
 
     Network nn = init_network();
 
-    int predicted = forward(nn, test_vectors[0]);
-    cout << "Prediction for the first number (without any training): " << predicted << endl;
+    for (int i = 0; i < 10; i++) {
+        int predicted = forward(nn, test_vectors[i]);
+        cout << "Prediction for the number " << test_labels[i] << ": " << predicted << endl;
+    }
 
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);
