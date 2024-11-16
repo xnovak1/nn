@@ -6,7 +6,10 @@
 #include <vector>
 #include <chrono>
 #include <stdexcept>
+#include <ctime>
+#include <cstdlib>
 #include "matrix.hpp"
+#include "nn.hpp"
 
 using namespace std;
 using namespace std::chrono;
@@ -19,6 +22,7 @@ using namespace std::chrono;
 #define FILE_TEST_PREDICTIONS "../test_predictions.csv"
 
 #define N_PIXELS 28*28
+#define N_HIDDEN 16
 #define NORMALIZE_DATA false
 #define EPOCHS 10
 
@@ -109,6 +113,57 @@ void normalize(vector<vector<float>> &vectors, float mean, float sd)
     }
 }
 
+Network init_network() {
+    // Seed random number generator for reproducibility
+    std::srand(std::time(nullptr));
+
+    // Initialize the hidden layer
+    Layer hidden_layer = {
+        N_PIXELS,
+        N_HIDDEN,
+        Matrix(N_PIXELS, N_HIDDEN),
+        Matrix(1, N_HIDDEN),
+        Matrix(1, N_HIDDEN)
+    };
+
+    // Randomly initialize weights and biases for the hidden layer
+    for (int i = 0; i < N_PIXELS; i++) {
+        for (int j = 0; j < N_HIDDEN; j++) {
+            hidden_layer.weights.set(i, j, static_cast<float>(std::rand()) / RAND_MAX);
+        }
+    }
+    for (int j = 0; j < N_HIDDEN; j++) {
+        hidden_layer.biases.set(0, j, static_cast<float>(std::rand()) / RAND_MAX);
+    }
+
+    // Initialize the output layer
+    Layer output_layer = {
+        N_HIDDEN,
+        10,
+        Matrix(N_HIDDEN, 10),
+        Matrix(1, 10),
+        Matrix(1, 10)
+    };
+
+    // Randomly initialize weights and biases for the output layer
+    for (int i = 0; i < N_HIDDEN; i++) {
+        for (int j = 0; j < 10; ++j) {
+            output_layer.weights.set(i, j, static_cast<float>(std::rand()) / RAND_MAX);
+        }
+    }
+    for (int j = 0; j < 10; j++) {
+        output_layer.biases.set(0, j, static_cast<float>(std::rand()) / RAND_MAX);
+    }
+
+    // Create and return the network
+    Network network = {
+        hidden_layer,
+        output_layer
+    };
+
+    return network;
+}
+
 int main()
 {
     auto start = high_resolution_clock::now();
@@ -130,6 +185,11 @@ int main()
         normalize(train_vectors, mean, sd);
         normalize(test_vectors, mean, sd);
     }
+
+    Network nn = init_network();
+
+    int predicted = forward(nn, test_vectors[0]);
+    cout << "Prediction for the first number (without any training): " << predicted << endl;
 
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<microseconds>(stop - start);

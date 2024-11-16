@@ -2,6 +2,9 @@
 #include <vector>
 #include <algorithm>
 #include "matrix.hpp"
+#include "nn.hpp"
+
+#include <iostream> // remove
 
 using namespace std;
 
@@ -11,19 +14,6 @@ using namespace std;
 #define LEARNING_RATE 0.1
 #define TRAIN_SIZE 60000
 #define TEST_SIZE 10000
-
-struct Layer {
-    int n_input;  // number of input neurons
-    int n_output; // number of output neurons
-    Matrix weights;
-    Matrix biases;
-    Matrix outputs;
-};
-
-struct Network {
-    Layer hidden;
-    Layer output;
-};
 
 float sigmoid(float x) {
     return 1 / (1 + exp(-x));
@@ -108,8 +98,8 @@ void layer_forward(Layer &layer, vector<float> input, vector<float> &output, boo
  * @return int Image classification (0-9)
  */
 int forward(Network network, vector<float> input) {
-    vector<float> output_hidden;
-    vector<float> output_last;
+    vector<float> output_hidden(network.hidden.n_output, 0);
+    vector<float> output_last(network.output.n_output, 0);
 
     layer_forward(network.hidden, input, output_hidden, true);
     layer_forward(network.output, output_hidden, output_last, false);
@@ -135,13 +125,10 @@ float cross_entropy(vector<int> actual, vector<vector<float>> predicted){
             {
                 entropy += log(predicted[j][i]);
             }
-            
         } 
     }
     return -(1/predicted.size())*entropy;
 }
-
-
 
 void backprop(Matrix labels, Network nn){
     //Softmax layer
@@ -173,6 +160,4 @@ void backprop(Matrix labels, Network nn){
     nn.hidden.weights = nn.hidden.outputs.transpose()*gradient;
 
     nn.hidden.biases = gradient.SumRowsToOne();
-
-
 }
