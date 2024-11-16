@@ -1,91 +1,107 @@
 #include <iostream>
 #include <fstream>
+#include <sstream>
 #include <cmath>
 #include <string>
-#include <sstream>
 #include <vector>
 #include <chrono>
+#include <stdexcept>
 #include "matrix.hpp"
 
 using namespace std;
 using namespace std::chrono;
 
-double all_values = 0;
-double all_values_sq = 0;
+#define FILE_TRAIN_LABELS "../data/fashion_mnist_train_labels.csv"
+#define FILE_TEST_LABELS "../data/fashion_mnist_test_labels.csv"
+#define FILE_TRAIN_VECTORS "../data/fashion_mnist_train_vectors.csv"
+#define FILE_TEST_VECTORS "../data/fashion_mnist_test_vectors.csv"
 
-vector<int> read_labels(string file_path)
-{
-    std::ifstream file;
-    file.open(file_path);
-    std::string line;
+#define N_PIXELS 784
+#define NORMALIZE_DATA false
+
+vector<int> read_labels(const string& file_path) {
+    std::ifstream file(file_path);
+    if (!file) {
+        throw std::runtime_error("Failed to open file: " + file_path);
+    }
+
     vector<int> labels;
-    if (file.is_open())
-    {
-        int label;
-        while (getline(file, line))
-        {
-            string tempString = "";
-            stringstream inputString(line);
-            getline(inputString, tempString);
-            label = atoi(tempString.c_str());
+    string line;
 
-            labels.push_back(label);
-
-            line = "";
+    while (getline(file, line)) {
+        try {
+            labels.push_back(stoi(line));
+        } catch (const std::invalid_argument& e) {
+            throw std::runtime_error("Invalid line: " + line);
         }
     }
+
     return labels;
 }
 
-vector<vector<float>> read_vectors(string file_path, bool count_values)
+vector<vector<float>> read_vectors(
+    string file_path,
+    bool statistics,
+    float &all_values,
+    float &all_values_sq)
 {
-    std::ifstream file;
-    file.open(file_path);
-    std::string line;
-    vector<vector<float>> vectors;
-    if (file.is_open())
-    {
+    std::ifstream file(file_path);
+    if (!file) {
+        throw std::runtime_error("Failed to open file: " + file_path);
+    }
 
-        while (getline(file, line))
+    vector<vector<float>> vectors;
+    all_values = 0;
+    all_values_sq = 0;
+
+    string line;
+    while (getline(file, line))
+    {
+        vector<float> row;
+        int row_sum = 0;
+        int row_sum_sq = 0;
+
+        std::stringstream line_stream(line);
+        string pixel;
+        int pixel_count = 0;
+
+        while (getline(line_stream, pixel, ','))
         {
-            vector<float> vtr = {};
-            stringstream inputString(line);
-            int values = 0;    // store pixel values for mean comutation
-            int values_sq = 0; // store squared values for std
-            while (inputString.good())
-            {
-                string substr;
-                getline(inputString, substr, ',');
-                int pixel = atoi(substr.c_str());
-                if (count_values)
-                {
-                    values += pixel;
-                    values_sq += pow(pixel, 2);
+            try {
+                int value = std::stoi(pixel);
+                row.push_back(value);
+
+                if (statistics) {
+                    row_sum += value;
+                    row_sum_sq += value * value;
                 }
 
-                vtr.push_back(pixel);
+                pixel_count++;
+            } catch (const std::invalid_argument&) {
+                throw std::runtime_error("Invalid numeric value: " + pixel);
             }
+        }
 
-            vectors.push_back(vtr);
-            if (count_values)
-            {
-                all_values += values / 784; // add mean values for one image to the sum of all means
-                all_values_sq += values_sq / 784;
-            }
+        vectors.push_back(row);
 
-            line = "";
+        if (statistics) {
+            all_values += row_sum / N_PIXELS;
+            all_values_sq += row_sum_sq / N_PIXELS;
         }
     }
+
     return vectors;
 }
 
 void normalize(vector<vector<float>> &vectors, float mean, float sd)
 {
-    for (size_t j = 0; j < vectors.size(); j++)
-    {
-        for (size_t i = 0; i < vectors[j].size(); i++)
-        {
-            vectors[j][i] = (vectors[j][i] - mean) / sd;
+    if (sd == 0.0f) {
+        throw std::invalid_argument("Standard deviation can't be zero.");
+    }
+
+    for (auto& row : vectors) {
+        for (auto& value : row) {
+            value = (value - mean) / sd;
         }
     }
 }
@@ -93,20 +109,26 @@ void normalize(vector<vector<float>> &vectors, float mean, float sd)
 int main()
 {
     auto start = high_resolution_clock::now();
+
+    float all_values = 0;
+    float all_values_sq = 0;
     
     // load data
-    vector<int> train_labels = read_labels("../data/fashion_mnist_train_labels.csv");
-    vector<int> test_labels = read_labels("../data/fashion_mnist_test_labels.csv");
-    vector<vector<float>> train_vectors = read_vectors("../data/fashion_mnist_train_vectors.csv", true);
-    vector<vector<float>> test_vectors = read_vectors("../data/fashion_mnist_test_vectors.csv", false);
+    vector<int> train_labels = read_labels(FILE_TRAIN_LABELS);
+    vector<int> test_labels = read_labels(FILE_TEST_LABELS);
+    vector<vector<float>> train_vectors = read_vectors(FILE_TRAIN_VECTORS, true, all_values, all_values_sq);
+    vector<vector<float>> test_vectors = read_vectors(FILE_TEST_VECTORS, false, all_values, all_values_sq);
 
     // normalize data
 
-    int num_of_images = (train_vectors.size());
-    float mean = all_values / num_of_images;
-    float sd = sqrt(all_values_sq / num_of_images - pow(mean, 2));
-    normalize(train_vectors, mean, sd);
-    normalize(test_vectors, mean, sd);
+    if (NORMALIZE_DATA) {
+        int num_of_images = (train_vectors.size());
+        float mean = all_values / num_of_images;
+        float sd = sqrt(all_values_sq / num_of_images - mean * mean);
+        normalize(train_vectors, mean, sd);
+        normalize(test_vectors, mean, sd);
+    }
+
     auto stop = high_resolution_clock::now();
 
     // train a model
