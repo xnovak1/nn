@@ -125,9 +125,10 @@ Matrix Matrix::operator*(float value) const
     return result;
 }
 
+// 'other' matrix is left side of operation
 Matrix Matrix::operator*(const Matrix &other) const
 {
-    if (cols != other.rows)
+    if (other.cols != rows)
     {
         throw std::invalid_argument("Matrix dimensions do not allow multiplication.");
     }
@@ -170,7 +171,7 @@ Matrix Matrix::SumRowsToOne() const
     {
         for (int j = 0; j < cols; j++)
         {
-            result.data[1][j] += data[i][j];
+            result.data[0][j] += data[i][j];
         }
     }
     return result;

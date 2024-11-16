@@ -31,6 +31,7 @@
 *.out
 *.app
 network
+tests
 
 # Data
 *.csv

@@ -15,9 +15,12 @@ using namespace std::chrono;
 #define FILE_TEST_LABELS "../data/fashion_mnist_test_labels.csv"
 #define FILE_TRAIN_VECTORS "../data/fashion_mnist_train_vectors.csv"
 #define FILE_TEST_VECTORS "../data/fashion_mnist_test_vectors.csv"
+#define FILE_TRAIN_PREDICTIONS "../train_predictions.csv"
+#define FILE_TEST_PREDICTIONS "../test_predictions.csv"
 
-#define N_PIXELS 784
+#define N_PIXELS 28*28
 #define NORMALIZE_DATA false
+#define EPOCHS 10
 
 vector<int> read_labels(const string& file_path) {
     std::ifstream file(file_path);
@@ -112,7 +115,7 @@ int main()
 
     float all_values = 0;
     float all_values_sq = 0;
-    
+
     // load data
     vector<int> train_labels = read_labels(FILE_TRAIN_LABELS);
     vector<int> test_labels = read_labels(FILE_TEST_LABELS);
@@ -120,7 +123,6 @@ int main()
     vector<vector<float>> test_vectors = read_vectors(FILE_TEST_VECTORS, false, all_values, all_values_sq);
 
     // normalize data
-
     if (NORMALIZE_DATA) {
         int num_of_images = (train_vectors.size());
         float mean = all_values / num_of_images;
@@ -130,11 +132,7 @@ int main()
     }
 
     auto stop = high_resolution_clock::now();
-
-    // train a model
-
     auto duration = duration_cast<microseconds>(stop - start);
-
     cout << "Time taken by function: "
          << duration.count() << " microseconds" << endl;
 }
