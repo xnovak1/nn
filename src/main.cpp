@@ -26,8 +26,9 @@ using namespace std::chrono;
 #define N_HIDDEN 16
 #define NORMALIZE_DATA false
 #define EPOCHS 10
+#define BATCH_SIZE 32
 
-vector<int> read_labels(const string& file_path) {
+vector<int> read_labels(const string file_path) {
     std::ifstream file(file_path);
     if (!file) {
         throw std::runtime_error("Failed to open file: " + file_path);
@@ -44,6 +45,7 @@ vector<int> read_labels(const string& file_path) {
         }
     }
 
+    file.close();
     return labels;
 }
 
@@ -98,7 +100,21 @@ vector<vector<float>> read_vectors(
         }
     }
 
+    file.close();
     return vectors;
+}
+
+void write_predictions(string file_path, vector<int> predictions) {
+    std::ofstream file(file_path); // Open the file for writing
+    if (!file) {
+        throw std::runtime_error("Failed to open file: " + file_path);
+    }
+
+    for (int pred : predictions) {
+        file << pred << endl;
+    }
+
+    file.close();
 }
 
 void normalize(vector<vector<float>> &vectors, float mean, float sd)
@@ -187,14 +203,22 @@ int main()
     }
 
     Network nn = init_network();
+    train(nn, EPOCHS, BATCH_SIZE);
 
-    for (int i = 0; i < 30; i++) {
-        int predicted = forward(nn, test_vectors[i]);
-        cout << "Prediction for the number " << test_labels[i] << ": " << predicted << endl;
+    vector<int> train_predictions;
+    for (size_t i = 0; i < train_vectors.size(); i++) {
+        train_predictions.push_back(predict(nn, train_vectors[i]));
     }
 
+    vector<int> test_predictions;
+    for (size_t i = 0; i < test_vectors.size(); i++) {
+        test_predictions.push_back(predict(nn, test_vectors[i]));
+    }
+
+    write_predictions(FILE_TRAIN_PREDICTIONS, train_predictions);
+    write_predictions(FILE_TEST_PREDICTIONS, test_predictions);
+
     auto stop = high_resolution_clock::now();
-    auto duration = duration_cast<microseconds>(stop - start);
-    cout << "Time taken by function: "
-         << duration.count() << " microseconds" << endl;
+    auto duration = duration_cast<milliseconds>(stop - start);
+    cout << "Total time: " << duration.count() / 1000.0f << " seconds" << endl;
 }
