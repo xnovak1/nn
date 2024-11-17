@@ -86,7 +86,7 @@ int argmax(vector<float> input) {
  * @param input Vector of neuron inputs
  * @param output Vector of neuron outputs
  */
-void layer_forward(Layer &layer, vector<float> input, vector<float> &output, bool activate) {
+void forward(Layer &layer, vector<float> input, vector<float> &output, bool activate) {
     for (int j = 0; j < layer.n_output; j++) {
         output[j] += layer.biases.at(0, j);
         for (int i = 0; i < layer.n_input; i++) {
@@ -98,17 +98,17 @@ void layer_forward(Layer &layer, vector<float> input, vector<float> &output, boo
 }
 
 /**
- * @brief Single forward pass. Evaluation of input.
+ * @brief Prediction of single image.
  * 
  * @param input Vector of pixels
  * @return int Image classification (0-9)
  */
-int forward(Network network, vector<float> input) {
+int predict(Network network, vector<float> input) {
     vector<float> output_hidden(network.hidden.n_output, 0);
     vector<float> output_last(network.output.n_output, 0);
 
-    layer_forward(network.hidden, input, output_hidden, true);
-    layer_forward(network.output, output_hidden, output_last, false);
+    forward(network.hidden, input, output_hidden, true);
+    forward(network.output, output_hidden, output_last, false);
     softmax(output_last, 10);
 
     return argmax(output_last);
@@ -166,4 +166,8 @@ void backprop(Matrix labels, Network nn){
     nn.hidden.weights = nn.hidden.outputs.transpose()*gradient;
 
     nn.hidden.biases = gradient.SumRowsToOne();
+}
+
+void train(Network nn, int epochs, int batch_size) {
+    ;
 }

@@ -16,4 +16,5 @@ struct Network {
     Layer output;
 };
 
-int forward(Network network, std::vector<float> input);
+int predict(Network network, std::vector<float> input);
+void train(Network nn, int epochs, int batch_size);
