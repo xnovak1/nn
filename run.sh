@@ -5,7 +5,6 @@ echo "Adding some modules"
 
 # module add gcc-10.2
 
-
 echo "#################"
 echo "    COMPILING    "
 echo "#################"
@@ -13,8 +12,9 @@ echo "#################"
 ## dont forget to use comiler optimizations (e.g. -O3 or -Ofast)
 g++ -Wall -O3 main.cpp nn.cpp matrix.cpp -o network
 
-## tests
+## Matrix tests
 ## g++ -Wall -O3 tests.cpp matrix.cpp -o tests
+## ./tests
 
 echo "#################"
 echo "     RUNNING     "

@@ -32,12 +32,12 @@ std::vector<float> Matrix::getRow(int row) const
     return data[row];
 }
 
-int Matrix::rowSize() const
+size_t Matrix::rowSize() const
 {
     return this->rows;
 }
 
-int Matrix::colSize() const
+size_t Matrix::colSize() const
 {
     return this->cols;
 }

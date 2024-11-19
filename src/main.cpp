@@ -4,6 +4,7 @@
 #include <cmath>
 #include <string>
 #include <vector>
+#include <tuple>
 #include <chrono>
 #include <stdexcept>
 #include <ctime>
@@ -24,9 +25,11 @@ using namespace std::chrono;
 
 #define N_PIXELS 28*28
 #define N_HIDDEN 16
-#define NORMALIZE_DATA false
 #define EPOCHS 10
 #define BATCH_SIZE 32
+#define NORMALIZE_DATA false
+#define TEST_ACCURACY true
+#define WRITE_OUTPUT false
 
 vector<int> read_labels(const string file_path) {
     std::ifstream file(file_path);
@@ -203,20 +206,22 @@ int main()
     }
 
     Network nn = init_network();
-    train(nn, EPOCHS, BATCH_SIZE);
+    train(nn, EPOCHS, BATCH_SIZE, TEST_ACCURACY, train_vectors, train_labels, test_vectors, test_labels);
 
-    vector<int> train_predictions;
-    for (size_t i = 0; i < train_vectors.size(); i++) {
-        train_predictions.push_back(predict(nn, train_vectors[i]));
+    if (WRITE_OUTPUT) {
+        vector<int> train_predictions;
+        for (size_t i = 0; i < train_vectors.size(); i++) {
+            train_predictions.push_back(predict(nn, train_vectors[i]));
+        }
+
+        vector<int> test_predictions;
+        for (size_t i = 0; i < test_vectors.size(); i++) {
+            test_predictions.push_back(predict(nn, test_vectors[i]));
+        }
+
+        write_predictions(FILE_TRAIN_PREDICTIONS, train_predictions);
+        write_predictions(FILE_TEST_PREDICTIONS, test_predictions);
     }
-
-    vector<int> test_predictions;
-    for (size_t i = 0; i < test_vectors.size(); i++) {
-        test_predictions.push_back(predict(nn, test_vectors[i]));
-    }
-
-    write_predictions(FILE_TRAIN_PREDICTIONS, train_predictions);
-    write_predictions(FILE_TEST_PREDICTIONS, test_predictions);
 
     auto stop = high_resolution_clock::now();
     auto duration = duration_cast<milliseconds>(stop - start);

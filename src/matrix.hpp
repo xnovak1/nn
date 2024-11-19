@@ -25,6 +25,6 @@ public:
     float at(int row, int col) const;
     void set(int row, int col, float value);
     std::vector<float> getRow(int row) const;
-    int rowSize() const;
-    int colSize() const;
+    size_t rowSize() const;
+    size_t colSize() const;
 };
