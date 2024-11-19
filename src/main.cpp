@@ -134,7 +134,7 @@ void normalize(vector<vector<float>> &vectors, float mean, float sd)
 }
 
 Network init_network() {
-    std::srand(std::time(nullptr));
+    std::srand(std::time(0));
 
     Layer hidden_layer = {
         N_PIXELS,
@@ -144,7 +144,7 @@ Network init_network() {
         Matrix(1, N_HIDDEN)
     };
 
-    std::default_random_engine generator;
+    std::default_random_engine generator(std::time(0));
     std::normal_distribution<float> he(0, 2.0f / N_PIXELS); // normal He
 
     for (int i = 0; i < N_PIXELS; i++) {
