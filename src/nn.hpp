@@ -17,4 +17,12 @@ struct Network {
 };
 
 int predict(Network network, std::vector<float> input);
-void train(Network nn, int epochs, int batch_size);
+void train(
+    Network &nn,
+    int epochs,
+    int batch_size,
+    bool test_accuracy,
+    std::vector<std::vector<float>> train_vectors,
+    std::vector<int> train_labels,
+    std::vector<std::vector<float>> test_vectors,
+    std::vector<int> test_labels);
