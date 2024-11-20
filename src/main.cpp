@@ -27,6 +27,7 @@ using namespace std::chrono;
 #define N_HIDDEN 16
 #define EPOCHS 10
 #define BATCH_SIZE 32
+#define LEARNING_RATE 0.1
 #define NORMALIZE_DATA false
 #define TEST_ACCURACY true
 #define WRITE_OUTPUT false
@@ -206,7 +207,7 @@ int main()
     }
 
     Network nn = init_network();
-    train(nn, EPOCHS, BATCH_SIZE, TEST_ACCURACY, train_vectors, train_labels, test_vectors, test_labels);
+    train(nn, EPOCHS, BATCH_SIZE, LEARNING_RATE, TEST_ACCURACY, train_vectors, train_labels, test_vectors, test_labels);
 
     if (WRITE_OUTPUT) {
         vector<int> train_predictions;

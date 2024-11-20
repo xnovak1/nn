@@ -105,11 +105,10 @@ void forward(Layer &layer, vector<float> input, vector<float> &output, bool acti
  * @return int Image classification (0-9)
  */
 int predict(Network network, vector<float> input) {
-    vector<float> inputF(input.begin(), input.end());
     vector<float> output_hidden(network.hidden.n_output, 0);
     vector<float> output_last(network.output.n_output, 0);
 
-    forward(network.hidden, inputF, output_hidden, true);
+    forward(network.hidden, input, output_hidden, true);
     forward(network.output, output_hidden, output_last, false);
     softmax(output_last);
 
@@ -175,9 +174,63 @@ void backprop(Matrix labels, Network nn){
  * 
  * @param nn Neural network
  * @param minibatch Current minibatch
+ * @param learning_rate Learning rate
  */
-void train_batch(Network &nn, vector<tuple<vector<float>, float>> minibatch) {
-    ;
+void train_batch(
+    Network &nn,
+    vector<tuple<vector<float>, float>> minibatch,
+    float learning_rate) {
+
+    Matrix output_grad(nn.output.n_input, nn.output.n_output);
+    Matrix hidden_grad(nn.hidden.n_input, nn.hidden.n_output);
+
+    for (auto input : minibatch) {
+        Matrix partial_output_grad(nn.output.n_input, nn.output.n_output);
+        Matrix partial_hidden_grad(nn.hidden.n_input, nn.hidden.n_output);
+        vector<float> output_hidden(nn.hidden.n_output, 0);
+        vector<float> output_last(nn.output.n_output, 0);
+
+        forward(nn.hidden, get<0>(input), output_hidden, true);
+        forward(nn.output, output_hidden, output_last, false);
+        softmax(output_last);
+
+        float label = get<1>(input);
+
+        // 1. Output layer error (softmax + cross-entropy derivative)
+        vector<float> delta_output(nn.output.n_output, 0);
+        for (int i = 0; i < nn.output.n_output; i++) {
+            delta_output[i] = output_last[i] - (i == label ? 1.0f : 0.0f);
+        }
+
+        // 2. Backpropagate to output layer weights and biases
+        for (int i = 0; i < nn.output.n_input; i++) {
+            for (int j = 0; j < nn.output.n_output; j++) {
+                partial_output_grad.set(i, j, delta_output[j] * output_hidden[i]);
+            }
+        }
+
+        // 3. Compute error for hidden layer
+        vector<float> delta_hidden(nn.hidden.n_output, 0);
+        for (int i = 0; i < nn.hidden.n_output; i++) {
+            delta_hidden[i] *= relu_derivative(output_hidden[i]);
+        }
+
+        // 4. Backpropagate to hidden layer weights and biases
+        for (int i = 0; i < nn.hidden.n_input; i++) {
+            for (int j = 0; j < nn.hidden.n_output; j++) {
+                partial_hidden_grad.set(i, j, delta_hidden[j] * get<0>(input)[i]);
+            }
+        }
+
+        output_grad += partial_output_grad;
+        hidden_grad += partial_hidden_grad;
+    }
+
+    // update weights + biases
+    nn.output.weights -= output_grad * (learning_rate / minibatch.size());
+    nn.output.biases -= output_grad.SumRowsToOne() * (learning_rate / minibatch.size());
+    nn.hidden.weights -= hidden_grad * (learning_rate / minibatch.size());
+    nn.hidden.biases -= hidden_grad.SumRowsToOne() * (learning_rate / minibatch.size());
 }
 
 /**
@@ -186,6 +239,7 @@ void train_batch(Network &nn, vector<tuple<vector<float>, float>> minibatch) {
  * @param nn Neural network
  * @param epochs Number of epochs
  * @param batch_size Minibatch size
+ * @param learning_rate Learning rate
  * @param train_vectors Training data
  * @param train_labels Training data
  * @param test_vectors Testing data
@@ -195,6 +249,7 @@ void train(
     Network &nn,
     int epochs,
     int batch_size,
+    float learning_rate,
     bool test_accuracy,
     vector<vector<float>> train_vectors,
     vector<int> train_labels,
@@ -209,7 +264,7 @@ void train(
         input.emplace_back(train_vectors[i], train_labels[i]);
     }
 
-    for (int epoch; epoch < epochs; epoch++) {
+    for (int epoch = 0; epoch < epochs; epoch++) {
         std::shuffle(input.begin(), input.end(), rng);
         for (size_t i = 0; i < input.size() / batch_size; i ++) {
             vector<tuple<vector<float>, float>> minibatch(batch_size);
@@ -217,7 +272,7 @@ void train(
                 minibatch[j] = input[i * batch_size + j];
             }
 
-            train_batch(nn, minibatch);
+            train_batch(nn, minibatch, learning_rate);
         }
 
         if (test_accuracy) {
