@@ -135,20 +135,20 @@ void train_batch(
 
         float label = get<1>(input);
 
-        // 1. Output layer error (softmax + cross-entropy derivative)
+        // Output layer error
         vector<float> delta_output(nn.output.n_output, 0);
         for (int i = 0; i < nn.output.n_output; i++) {
             delta_output[i] = output_last[i] - (i == label ? 1.0f : 0.0f);
         }
 
-        // 2. Backpropagate to output layer weights and biases
+        // Output layer gradient
         for (int i = 0; i < nn.output.n_input; i++) {
             for (int j = 0; j < nn.output.n_output; j++) {
                 partial_output_grad.set(i, j, delta_output[j] * output_hidden[i]);
             }
         }
 
-        // 3. Compute error for hidden layer
+        // Hidden layer error
         vector<float> delta_hidden(nn.hidden.n_output, 0);
         for (int i = 0; i < nn.hidden.n_output; i++) {
             float error = 0;
@@ -158,7 +158,7 @@ void train_batch(
             delta_hidden[i] = error * relu_derivative(output_hidden[i]);
         }
 
-        // 4. Backpropagate to hidden layer weights and biases
+        // Hidden layer gradient
         for (int i = 0; i < nn.hidden.n_input; i++) {
             for (int j = 0; j < nn.hidden.n_output; j++) {
                 partial_hidden_grad.set(i, j, delta_hidden[j] * get<0>(input)[i]);
@@ -208,6 +208,7 @@ void train(
     }
 
     for (int epoch = 0; epoch < epochs; epoch++) {
+        if (epoch > 2) learning_rate = 0.001;
         std::shuffle(input.begin(), input.end(), rng);
         for (size_t i = 0; i < input.size() / batch_size; i ++) {
             vector<tuple<vector<float>, float>> minibatch(batch_size);
