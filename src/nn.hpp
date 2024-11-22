@@ -21,6 +21,7 @@ void train(
     Network &nn,
     int epochs,
     int batch_size,
+    float learning_rate,
     bool test_accuracy,
     std::vector<std::vector<float>> train_vectors,
     std::vector<int> train_labels,
