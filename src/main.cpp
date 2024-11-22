@@ -24,9 +24,9 @@ using namespace std::chrono;
 #define FILE_TEST_PREDICTIONS "../test_predictions.csv"
 
 #define N_HIDDEN 64
-#define EPOCHS 25
-#define BATCH_SIZE 32
-#define LEARNING_RATE 0.5
+#define EPOCHS 10
+#define BATCH_SIZE 64
+#define LEARNING_RATE 0.1
 #define NORMALIZE_DATA true
 #define TEST_ACCURACY true
 #define WRITE_OUTPUT true
@@ -192,7 +192,7 @@ int main()
             test_predictions.push_back(predict(nn, test_vectors[i]));
         }
 
-        printf("Train prediction: %d/50000 ~ %.2f\n", correct, correct / 50000.0f * 100);
+        printf("Train prediction: %d/60000 ~ %.2f %%\n", correct, correct / 60000.0f * 100);
 
         write_predictions(FILE_TRAIN_PREDICTIONS, train_predictions);
         write_predictions(FILE_TEST_PREDICTIONS, test_predictions);

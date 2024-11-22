@@ -10,13 +10,6 @@
 
 using namespace std;
 
-#define N_INPUT 784
-#define N_HIDDEN 512
-#define N_OUTPUT 10
-#define LEARNING_RATE 0.1
-#define TRAIN_SIZE 60000
-#define TEST_SIZE 10000
-
 float sigmoid(float x) {
     return 1 / (1 + exp(-x));
 }
@@ -116,60 +109,6 @@ int predict(Network network, vector<float> input) {
 }
 
 /**
- * @brief Cross entropy for final
- * 
- * @param actual actual categories
- * @param predicted vector of predicted probabilities
- * @return cross entropy
- */
-float cross_entropy(vector<int> actual, vector<vector<float>> predicted){
-    float entropy;
-    for (int j = 0; j < predicted.size(); j++)
-    {
-       for (int i = 0; i < 10; i++)
-        {
-            if (i==actual[j])
-            {
-                entropy += log(predicted[j][i]);
-            }
-        } 
-    }
-    return -(1/predicted.size())*entropy;
-}
-
-void backprop(Matrix labels, Network nn){
-    //Softmax layer
-    //predicted values - ground truth(labels)
-    Matrix gradient = nn.output.outputs;
-    for (size_t i = 0; i < labels.rowSize(); i++)
-    {
-        gradient.set(i,labels.at(i,0),gradient.at(i,labels.at(i,0))-1);
-    }
-    gradient = gradient*(1/labels.rowSize()); //normalize by number of inputs
-
-    //update weights and biases of output layer
-    gradient = gradient*nn.output.weights.transpose();
-
-    nn.output.weights = nn.output.outputs.transpose()*gradient;
-
-    nn.output.biases = gradient.SumRowsToOne();
-
-    //Backprop ReLu gradient
-    for (size_t i = 0; i < gradient.rowSize(); i++)
-    {
-        for (size_t j = 0; j < gradient.colSize(); j++)
-        {
-            gradient.set(i,j,relu_derivative(gradient.at(i,j)));
-        }
-    }
-
-    //update weights and biases for hidden layer
-    nn.hidden.weights = nn.hidden.outputs.transpose()*gradient;
-
-    nn.hidden.biases = gradient.SumRowsToOne();
-}
-
-/**
  * @brief Trains the network using current minibatch.
  * 
  * @param nn Neural network
@@ -212,7 +151,11 @@ void train_batch(
         // 3. Compute error for hidden layer
         vector<float> delta_hidden(nn.hidden.n_output, 0);
         for (int i = 0; i < nn.hidden.n_output; i++) {
-            delta_hidden[i] *= relu_derivative(output_hidden[i]);
+            float error = 0;
+            for (int j = 0; j < nn.output.n_output; j++) {
+                error += delta_output[j] * nn.output.weights.at(i, j);
+            }
+            delta_hidden[i] = error * relu_derivative(output_hidden[i]);
         }
 
         // 4. Backpropagate to hidden layer weights and biases
