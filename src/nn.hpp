@@ -8,6 +8,8 @@ struct Layer {
     int n_output; // number of output neurons
     Matrix weights;
     Matrix biases;
+    Matrix weights_velocity;
+    Matrix biases_velocity;
     Matrix outputs;
 };
 
@@ -22,6 +24,7 @@ void train(
     int epochs,
     int batch_size,
     float learning_rate,
+    float momentum,
     bool test_accuracy,
     std::vector<std::vector<float>> train_vectors,
     std::vector<int> train_labels,

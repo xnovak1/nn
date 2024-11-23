@@ -35,6 +35,7 @@ tests
 
 # Data
 *.csv
+!example.csv
 *.json
 
 # PyTorch example

@@ -12,10 +12,6 @@ echo "#################"
 ## dont forget to use comiler optimizations (e.g. -O3 or -Ofast)
 g++ -Wall -O3 main.cpp nn.cpp matrix.cpp -o network
 
-## Matrix tests
-## g++ -Wall -O3 tests.cpp matrix.cpp -o tests
-## ./tests
-
 echo "#################"
 echo "     RUNNING     "
 echo "#################"
