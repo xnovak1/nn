@@ -108,6 +108,36 @@ int predict(Network network, vector<float> input) {
     return argmax(output_last);
 }
 
+void update_velocity(Network &nn, float momentum, const Matrix &hidden_grad, const Matrix &output_grad) {
+    for (int i = 0; i < nn.hidden.weights_velocity.rowSize(); i++) {
+        for (int j = 0; j < nn.hidden.weights_velocity.colSize(); j++) {
+            float new_velocity = momentum * nn.hidden.weights_velocity.at(i, j) + (1 - momentum) * hidden_grad.at(i, j);
+            nn.hidden.weights_velocity.set(i, j, new_velocity);
+        }
+    }
+
+    for (int i = 0; i < nn.output.weights_velocity.rowSize(); i++) {
+        for (int j = 0; j < nn.output.weights_velocity.colSize(); j++) {
+            float new_velocity = momentum * nn.output.weights_velocity.at(i, j) + (1 - momentum) * output_grad.at(i, j);
+            nn.output.weights_velocity.set(i, j, new_velocity);
+        }
+    }
+
+    for (int i = 0; i < nn.hidden.biases_velocity.rowSize(); i++) {
+        for (int j = 0; j < nn.hidden.biases_velocity.colSize(); j++) {
+            float new_velocity = momentum * nn.hidden.biases_velocity.at(i, j) + (1 - momentum) * hidden_grad.at(i, j);
+            nn.hidden.biases_velocity.set(i, j, new_velocity);
+        }
+    }
+
+    for (int i = 0; i < nn.output.biases_velocity.rowSize(); i++) {
+        for (int j = 0; j < nn.output.biases_velocity.colSize(); j++) {
+            float new_velocity = momentum * nn.output.biases_velocity.at(i, j) + (1 - momentum) * output_grad.at(i, j);
+            nn.output.biases_velocity.set(i, j, new_velocity);
+        }
+    }
+}
+
 /**
  * @brief Trains the network using current minibatch.
  * 
@@ -118,7 +148,8 @@ int predict(Network network, vector<float> input) {
 void train_batch(
     Network &nn,
     vector<tuple<vector<float>, float>> minibatch,
-    float learning_rate) {
+    float learning_rate,
+    float momentum) {
 
     Matrix output_grad(nn.output.n_input, nn.output.n_output);
     Matrix hidden_grad(nn.hidden.n_input, nn.hidden.n_output);
@@ -169,11 +200,14 @@ void train_batch(
         hidden_grad += partial_hidden_grad;
     }
 
+    // update parameter velocity
+    update_velocity(nn, momentum, hidden_grad, output_grad);
+
     // update weights + biases
-    nn.output.weights -= output_grad * (learning_rate / minibatch.size());
-    nn.output.biases -= output_grad.SumRowsToOne() * (learning_rate / minibatch.size());
-    nn.hidden.weights -= hidden_grad * (learning_rate / minibatch.size());
-    nn.hidden.biases -= hidden_grad.SumRowsToOne() * (learning_rate / minibatch.size());
+    nn.output.weights -= nn.output.weights_velocity * (learning_rate / minibatch.size());
+    nn.output.biases -= nn.output.biases_velocity * (learning_rate / minibatch.size());
+    nn.hidden.weights -= nn.hidden.weights_velocity * (learning_rate / minibatch.size());
+    nn.hidden.biases -= nn.hidden.biases_velocity * (learning_rate / minibatch.size());
 }
 
 /**
@@ -193,6 +227,7 @@ void train(
     int epochs,
     int batch_size,
     float learning_rate,
+    float momentum,
     bool test_accuracy,
     vector<vector<float>> train_vectors,
     vector<int> train_labels,
@@ -208,7 +243,9 @@ void train(
     }
 
     for (int epoch = 0; epoch < epochs; epoch++) {
-        if (epoch > 2) learning_rate = 0.001;
+        // learning rate dropping
+        if (epoch > 4) learning_rate = 0.005;
+
         std::shuffle(input.begin(), input.end(), rng);
         for (size_t i = 0; i < input.size() / batch_size; i ++) {
             vector<tuple<vector<float>, float>> minibatch(batch_size);
@@ -216,7 +253,7 @@ void train(
                 minibatch[j] = input[i * batch_size + j];
             }
 
-            train_batch(nn, minibatch, learning_rate);
+            train_batch(nn, minibatch, learning_rate, momentum);
         }
 
         if (test_accuracy) {
@@ -227,6 +264,9 @@ void train(
             }
             float accuracy = (float)correct / test_labels.size();
             printf("Epoch %2.d: %d/10000 ~ %.2f %%\n", epoch + 1, correct, accuracy * 100);
+
+            // stop training after desired accuracy
+            if (accuracy >= 0.88f) break;
         }
     }
 }

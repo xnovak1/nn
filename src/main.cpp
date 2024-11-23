@@ -28,8 +28,9 @@ using namespace std::chrono;
 
 #define N_HIDDEN 64
 #define EPOCHS 10
-#define BATCH_SIZE 64
+#define BATCH_SIZE 32
 #define LEARNING_RATE 0.1
+#define MOMENTUM 0.8 // 0.0 means no momentum (normal SGD), 1.0 is max momentum
 #define NORMALIZE_DATA true
 #define TEST_ACCURACY true
 #define WRITE_OUTPUT true
@@ -151,6 +152,8 @@ Network init_network() {
         N_HIDDEN,
         Matrix(784, N_HIDDEN),
         Matrix(1, N_HIDDEN),
+        Matrix(784, N_HIDDEN),
+        Matrix(1, N_HIDDEN),
         Matrix(1, N_HIDDEN)
     };
 
@@ -169,6 +172,8 @@ Network init_network() {
     Layer output_layer = {
         N_HIDDEN,
         10,
+        Matrix(N_HIDDEN, 10),
+        Matrix(1, 10),
         Matrix(N_HIDDEN, 10),
         Matrix(1, 10),
         Matrix(1, 10)
@@ -198,6 +203,7 @@ int main()
     printf("Training Dataset:      %s\n", DATASET);
     printf("No. of hidden neurons: %d\n", N_HIDDEN);
     printf("Learning rate:         %.3f\n", LEARNING_RATE);
+    printf("Momentum:              %.1f\n", MOMENTUM);
     printf("Batch size:            %d\n\n", BATCH_SIZE);
 
     auto start = high_resolution_clock::now();
@@ -223,7 +229,17 @@ int main()
     }
 
     Network nn = init_network();
-    train(nn, EPOCHS, BATCH_SIZE, LEARNING_RATE, TEST_ACCURACY, train_vectors, train_labels, test_vectors, test_labels);
+    train(
+        nn,
+        EPOCHS,
+        BATCH_SIZE,
+        LEARNING_RATE,
+        MOMENTUM,
+        TEST_ACCURACY,
+        train_vectors,
+        train_labels,
+        test_vectors,
+        test_labels);
 
     if (WRITE_OUTPUT) {
         int correct = 0;
