@@ -35,6 +35,7 @@ using namespace std::chrono;
 #define TEST_ACCURACY true
 #define WRITE_OUTPUT true
 #define DATASET "FashionMNIST"
+#define VALIDATION_SIZE 5000
 
 vector<int> read_labels(const string file_path) {
     std::ifstream file(file_path);
@@ -120,6 +121,18 @@ void read_mnist(string file_path, vector<vector<float>> &vectors, vector<int> &l
     }
 
     file.close();
+}
+
+void load_validation(vector<int> &train_labels, vector<int> &validation_labels,
+                     vector<vector<float>> &train_vectors, vector<vector<float>> &validation_vectors) {
+    for (int i = 0; i < VALIDATION_SIZE; i++) {
+        int label = train_labels[59999 - i];
+        train_labels.pop_back();
+        vector<float> vtr = train_vectors[59999 - i];
+        train_vectors.pop_back();
+        validation_labels[i] = label;
+        validation_vectors[i] = vtr;
+    }
 }
 
 void write_predictions(string file_path, vector<int> predictions) {
@@ -209,8 +222,10 @@ int main()
     auto start = high_resolution_clock::now();
 
     vector<int> train_labels(60000, 0.0f);
+    vector<int> validation_labels(VALIDATION_SIZE, 0.0f);
     vector<int> test_labels(10000, 0.0f);
     vector<vector<float>> train_vectors(60000, vector<float>(784, 0.0f));
+    vector<vector<float>> validation_vectors(VALIDATION_SIZE, vector<float>(784, 0.0f));
     vector<vector<float>> test_vectors(10000, vector<float>(784, 0.0f));
 
     if (DATASET == "FashionMNIST") {
@@ -218,6 +233,7 @@ int main()
         test_labels = read_labels(FILE_TEST_LABELS);
         train_vectors = read_vectors(FILE_TRAIN_VECTORS);
         test_vectors = read_vectors(FILE_TEST_VECTORS);
+        load_validation(train_labels, validation_labels, train_vectors, validation_vectors);
     } else if (DATASET == "MNIST") {
         read_mnist(MNIST_TRAIN, train_vectors, train_labels);
         read_mnist(MNIST_TEST, test_vectors, test_labels);
@@ -225,6 +241,7 @@ int main()
 
     if (NORMALIZE_DATA) {
         normalize(train_vectors);
+        normalize(validation_vectors);
         normalize(test_vectors);
     }
 
@@ -238,8 +255,8 @@ int main()
         TEST_ACCURACY,
         train_vectors,
         train_labels,
-        test_vectors,
-        test_labels);
+        validation_vectors,
+        validation_labels);
 
     if (WRITE_OUTPUT) {
         int correct = 0;

@@ -219,8 +219,8 @@ void train_batch(
  * @param learning_rate Learning rate
  * @param train_vectors Training data
  * @param train_labels Training data
- * @param test_vectors Testing data
- * @param test_labels Testing data
+ * @param validation_vectors Testing data
+ * @param validation_labels Testing data
  */
 void train(
     Network &nn,
@@ -231,8 +231,8 @@ void train(
     bool test_accuracy,
     vector<vector<float>> train_vectors,
     vector<int> train_labels,
-    vector<vector<float>> test_vectors,
-    vector<int> test_labels) {
+    vector<vector<float>> validation_vectors,
+    vector<int> validation_labels) {
 
     auto rng = std::default_random_engine {};
 
@@ -245,6 +245,7 @@ void train(
     for (int epoch = 0; epoch < epochs; epoch++) {
         // learning rate dropping
         if (epoch > 4) learning_rate = 0.005;
+        if (epoch > 7) learning_rate = 0.001;
 
         std::shuffle(input.begin(), input.end(), rng);
         for (size_t i = 0; i < input.size() / batch_size; i ++) {
@@ -258,15 +259,12 @@ void train(
 
         if (test_accuracy) {
             int correct = 0;
-            for (size_t k = 0; k < test_vectors.size(); k++) {
-                int predicted = predict(nn, test_vectors[k]);
-                correct += predicted == test_labels[k] ? 1 : 0;
+            for (size_t k = 0; k < validation_vectors.size(); k++) {
+                int predicted = predict(nn, validation_vectors[k]);
+                correct += predicted == validation_labels[k] ? 1 : 0;
             }
-            float accuracy = (float)correct / test_labels.size();
-            printf("Epoch %2.d: %d/10000 ~ %.2f %%\n", epoch + 1, correct, accuracy * 100);
-
-            // stop training after desired accuracy
-            if (accuracy >= 0.88f) break;
+            float accuracy = (float)correct / validation_labels.size();
+            printf("Epoch %2.d: %d/%ld ~ %.2f %%\n", epoch + 1, correct, validation_labels.size(), accuracy * 100);
         }
     }
 }
