@@ -3,7 +3,9 @@
 
 echo "Adding some modules"
 
-# module add gcc-10.2
+module add gcc-10.2
+
+cd src
 
 echo "#################"
 echo "    COMPILING    "
